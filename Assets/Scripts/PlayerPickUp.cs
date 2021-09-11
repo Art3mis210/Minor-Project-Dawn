@@ -28,11 +28,14 @@ public class PlayerPickUp : MonoBehaviour
         {
             if(Input.GetKey(KeyCode.E))
             {
-                Debug.Log("PICKING");
-                PickUp = true;
-                CurrentPickedEnemy = other.gameObject.GetComponent<EnemyPick>();
-                CurrentPickedEnemy.EnemyPickUp(PickUpLocation);
-                PlayerAnimator.SetBool("Carry", true);
+                if (PickUp == false)
+                {
+                    Debug.Log("PICKING");
+                    PickUp = true;
+                    CurrentPickedEnemy = other.gameObject.GetComponent<EnemyPick>();
+                    CurrentPickedEnemy.EnemyPickUp(PickUpLocation);
+                    PlayerAnimator.SetBool("Carry", true);
+                }
             }
         }
     }
