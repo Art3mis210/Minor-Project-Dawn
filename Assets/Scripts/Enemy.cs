@@ -12,25 +12,46 @@ public class Enemy : MonoBehaviour
     public int AimDistance;
     public int FarEnoughDistance;
     private bool Alert;
+    public bool Alive;
+    public GameObject PickUpPoint;
+    public List<Transform> EnemyPath;
+    public int CurrentPath;
+    private Vector3 PathDirection;
+    public bool Change;
     void Start()
     {
         PlayerFound = false;
         EnemyAnimator = GetComponent<Animator>();
         Alert = false;
+        Alive = true;
+        CurrentPath = 0;
+        PathDirection = new Vector3(EnemyPath[CurrentPath].position.x, transform.position.y, EnemyPath[CurrentPath].position.z);
     }
 
     // Update is called once per frame
     void Update()
     {
 
-        if (PlayerFound == true)
+        if (Alive == true)
         {
-            Vector3 PlayerPosition = new Vector3(Player.transform.position.x,transform.position.y,Player.transform.position.z);
-            transform.LookAt(PlayerPosition);
-            DecideAction();
+            if (PlayerFound == true)
+            {
+                Vector3 PlayerPosition = new Vector3(Player.transform.position.x, transform.position.y, Player.transform.position.z);
+                transform.LookAt(PlayerPosition);
+                DecideAction();
+            }
+            else
+            {
+                CheckForIntruders();
+                FollowPath();
+            }
         }
         else
-            CheckForIntruders();
+        {
+            FreezeEnemy();
+            //PickUpPoint.SetActive(true);
+            enabled = false;
+        }
     }
     private void CheckForIntruders()
     {
@@ -48,6 +69,32 @@ public class Enemy : MonoBehaviour
                 PlayerFound = true;
                 Player = hit.transform.gameObject;
             }
+        }
+    }
+    private void FollowPath()
+    {
+        if (PlayerFound == false)
+        {
+            //StartCoroutine(RotateTowardsNextPath(EnemyPath[CurrentPath], 2f));
+            PathDirection = new Vector3(EnemyPath[CurrentPath].position.x, transform.position.y, EnemyPath[CurrentPath].position.z);
+            transform.LookAt(PathDirection);
+            EnemyAnimator.SetBool("Walk", true);
+            Debug.Log(Vector3.Distance(transform.localPosition, EnemyPath[CurrentPath].position));
+            if (Vector3.Distance(transform.localPosition,EnemyPath[CurrentPath].position)<20f)
+            {
+                Debug.Log("Rotate");
+                CurrentPath = (CurrentPath + 1) % EnemyPath.Count;
+            }
+        }
+    }
+    IEnumerator RotateTowardsNextPath(Transform Path, float Duration)
+    {
+        float t = 0f;
+        while (t < Duration)
+        {
+            transform.localRotation = Quaternion.Slerp(transform.localRotation, Quaternion.LookRotation(Path.position - transform.position), t / Duration);
+            yield return null;
+            t += Time.deltaTime;
         }
     }
     private void DecideAction()
@@ -72,6 +119,12 @@ public class Enemy : MonoBehaviour
             EnemyAnimator.SetBool("Sprint", true);
         }
 
+    }
+    public void FreezeEnemy()
+    {
+        EnemyAnimator.SetBool("Sprint", false);
+        EnemyAnimator.SetBool("Walk", false);
+        
     }
     private void PlayerLost()
     {

@@ -8,6 +8,7 @@ public class PlayerExecution : MonoBehaviour
     private PlayerMovement playerMovement;
     private CapsuleCollider PlayerCollider;
     private Rigidbody PlayerRigidBody;
+    private EnemyExecution CurrentEnemy;
     void Start()
     {
         PlayerAnimator = GetComponent<Animator>();
@@ -20,10 +21,12 @@ public class PlayerExecution : MonoBehaviour
         {
             if(Input.GetKey(KeyCode.E))
             {
+                CurrentEnemy = other.gameObject.GetComponent<EnemyExecution>();
+                CurrentEnemy.FreezeEnemy();
                 if(playerMovement.Stealth==false)
                     StartCoroutine(BrutalMoveToExecutionPosition(other.gameObject.transform, 1f));
                 else
-                    StartCoroutine(StealthMoveToExecutionPosition(other.gameObject.transform, 1f));
+                    StartCoroutine(StealthMoveToExecutionPosition(other.gameObject.transform, 2f));
                 other.GetComponent<BoxCollider>().enabled = false;
             }
         }
@@ -61,18 +64,17 @@ public class PlayerExecution : MonoBehaviour
             yield return null;
             t += Time.deltaTime;
         }
-        EnemyExecution enemyExecution = Enemy.gameObject.GetComponent<EnemyExecution>();
-        enemyExecution.FreezeEnemy();
         if(playerMovement.Stealth==false)
         {
-            enemyExecution.BrutalExecuteEnemy();
+            CurrentEnemy.BrutalExecuteEnemy();
             PlayerAnimator.SetBool("BrutalExecution", true);
         }
         else
         {
-            enemyExecution.StealthExecuteEnemy();
+            CurrentEnemy.StealthExecuteEnemy();
             PlayerAnimator.SetBool("StealthExecution", true);
         }
+        CurrentEnemy = null;
     }
 
 }
